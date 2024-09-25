@@ -99,7 +99,9 @@ export async function GET(request: Request, { params }: { params: { id: string; 
     return new NextResponse('Please pay to download ticket', { status: 404 });
   }
 
-  const url = await QRCode.toDataURL(`http://localhost:3000/dashboard/application/${app.id}`);
+  const redirectUrl = process.env.NODE_ENV === "production" ? `https://aghs.vercel.app/dashboard/application/${app.id}` : `http://localhost:3000/dashboard/application/${app.id}`
+
+  const url = await QRCode.toDataURL(redirectUrl);
 
   const stream = await renderToStream(<Ticket app={app} url={url} />);
   return new NextResponse(stream as unknown as ReadableStream, {
