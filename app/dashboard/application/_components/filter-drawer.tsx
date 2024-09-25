@@ -63,6 +63,7 @@ export const FilterDrawer = ({ open, handleClose }: Props) => {
     }, [searchValue, router, pathname])
 
     const handleStatusChange = (isPaid: string) => {
+        setIsPaid(isPaid)
         const params = Object.fromEntries(searchParams.entries());
         const url = queryString.stringifyUrl({
             url: pathname,
@@ -76,7 +77,6 @@ export const FilterDrawer = ({ open, handleClose }: Props) => {
     }
 
     const handlePerPageChange = (perPage: string) => {
-        setIsPaid(isPaid)
         const params = Object.fromEntries(searchParams.entries());
         const url = queryString.stringifyUrl({
             url: pathname,

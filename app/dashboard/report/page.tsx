@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Metadata } from "next";
-import { Role } from "@prisma/client";
 
 import {
     Breadcrumb,
@@ -10,38 +9,44 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { ContentLayout } from "../_components/content-layout";
 import { db } from "@/lib/prisma";
-import { UserList } from "./_components/user-list";
-import { CustomPagination } from "@/components/custom-pagination";
+import { ReportList } from "./_components/report-list";
 import { Header } from "./_components/header";
 
 export const metadata: Metadata = {
-    title: "AGHS | Users",
+    title: "AGHS | Report",
     description: "Armanitola Govt. High School Reunion",
 };
 
 interface Props {
     searchParams: {
         name?: string;
+        phone?: string;
         page: string;
         perPage: string;
     }
 }
 
-
-const Users = async ({ searchParams }: Props) => {
-    const { name, page, perPage } = searchParams;
+const Report = async ({ searchParams }: Props) => {
+    const { name, phone, page, perPage } = searchParams;
     const itemsPerPage = parseInt(perPage) || 5;
     const currentPage = parseInt(page) || 1;
 
-    const [users, totalUser] = await Promise.all([
-        await db.user.findMany({
+    const [reports, totalApplication] = await Promise.all([
+        await db.application.findMany({
             where: {
-                role: Role.User,
-                ...(name && { name: { contains: name, mode: "insensitive" } })
+                ...(name && {
+                    name: { contains: name, mode: "insensitive" }
+                }),
+                ...(phone && {
+                    phone: { contains: phone, mode: "insensitive" }
+                }),
+            },
+            include: {
+                service: true
             },
             orderBy: {
                 createdAt: "desc"
@@ -49,19 +54,22 @@ const Users = async ({ searchParams }: Props) => {
             skip: (currentPage - 1) * itemsPerPage,
             take: itemsPerPage,
         }),
-        await db.user.count({
+        await db.application.count({
             where: {
-                role: Role.User,
-                ...(name && { name: { contains: name, mode: "insensitive" } })
-            },
+                ...(name && {
+                    name: { contains: name, mode: "insensitive" }
+                }),
+                ...(phone && {
+                    phone: { contains: phone, mode: "insensitive" }
+                }),
+            }
         })
-
     ])
 
-    const totalPage = Math.ceil(totalUser / itemsPerPage)
+    const totalPage = Math.ceil(totalApplication / itemsPerPage)
 
     return (
-        <ContentLayout title="Users">
+        <ContentLayout title="Report">
             <Breadcrumb>
                 <BreadcrumbList>
                     <BreadcrumbItem>
@@ -71,26 +79,25 @@ const Users = async ({ searchParams }: Props) => {
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
-                        <BreadcrumbPage>Users</BreadcrumbPage>
+                        <BreadcrumbPage>Report</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
 
             <Card className="mt-4">
                 <CardHeader>
-                    <CardTitle>User List</CardTitle>
-                    <CardDescription>
-                        A collection of user.
-                    </CardDescription>
+                    <CardTitle>Reports</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Header />
+                    <ReportList reports={reports} />
+                    {/* <Header />
                     <UserList users={users} />
-                    <CustomPagination totalPage={totalPage} />
+                    <CustomPagination totalPage={totalPage} /> */}
                 </CardContent>
             </Card>
         </ContentLayout>
     )
 }
 
-export default Users
+export default Report

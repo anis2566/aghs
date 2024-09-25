@@ -15,7 +15,6 @@ import { FilterDrawer } from "./filter-drawer"
 export const Header = () => {
     const [search, setSearch] = useState<string>("")
     const [phone, setPhone] = useState<string>("")
-    const [isPaid, setIsPaid] = useState<string>("")
     const [perPage, setPerPage] = useState<string>()
     const [open, setOpen] = useState<boolean>(false)
 
@@ -55,20 +54,6 @@ export const Header = () => {
         router.push(url);
     }, [searchValue, router, pathname])
 
-    const handleStatusChange = (isPaid: string) => {
-        setIsPaid(isPaid)
-        const params = Object.fromEntries(searchParams.entries());
-        const url = queryString.stringifyUrl({
-            url: pathname,
-            query: {
-                ...params,
-                isPaid,
-            }
-        }, { skipNull: true, skipEmptyString: true })
-
-        router.push(url)
-    }
-
     const handlePerPageChange = (perPage: string) => {
         const params = Object.fromEntries(searchParams.entries());
         const url = queryString.stringifyUrl({
@@ -86,7 +71,6 @@ export const Header = () => {
         router.push(pathname)
         setSearch("")
         setPhone("")
-        setIsPaid("")
         setPerPage(undefined)
     }
 
@@ -116,15 +100,6 @@ export const Header = () => {
                             value={phone}
                         />
                     </div>
-                    <Select value={isPaid} onValueChange={(value) => handleStatusChange(value)}>
-                        <SelectTrigger className="w-[130px]">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="true">Paid</SelectItem>
-                            <SelectItem value="false">Unpaid</SelectItem>
-                        </SelectContent>
-                    </Select>
                     <Button
                         variant="destructive"
                         className=""

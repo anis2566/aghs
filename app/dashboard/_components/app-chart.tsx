@@ -32,7 +32,7 @@ interface Props {
 
 export function AppChart({ data }: Props) {
     return (
-        <Card>
+        <Card className="hidden md:block">
             <CardHeader>
                 <CardTitle>Applications Analytics</CardTitle>
                 <CardDescription>

@@ -7,27 +7,33 @@ import { useEffect, useState } from "react"
 
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from "@/components/ui/sheet"
 
 import { useDebounce } from "@/hooks/use-debounce"
-import { Button } from "@/components/ui/button"
-import { FilterDrawer } from "./filter-drawer"
 
-export const Header = () => {
+
+interface Props {
+    open: boolean;
+    handleClose: () => void;
+}
+
+export const FilterDrawer = ({ open, handleClose }: Props) => {
     const [search, setSearch] = useState<string>("")
     const [phone, setPhone] = useState<string>("")
-    const [isPaid, setIsPaid] = useState<string>("")
     const [perPage, setPerPage] = useState<string>()
-    const [open, setOpen] = useState<boolean>(false)
 
     const pathname = usePathname()
     const router = useRouter()
     const searchParams = useSearchParams()
     const searchValue = useDebounce(search, 500)
     const phoneValue = useDebounce(phone, 500)
-
-    const handleClose = () => {
-        setOpen(false)
-    }
 
     useEffect(() => {
         const params = Object.fromEntries(searchParams.entries());
@@ -55,20 +61,6 @@ export const Header = () => {
         router.push(url);
     }, [searchValue, router, pathname])
 
-    const handleStatusChange = (isPaid: string) => {
-        setIsPaid(isPaid)
-        const params = Object.fromEntries(searchParams.entries());
-        const url = queryString.stringifyUrl({
-            url: pathname,
-            query: {
-                ...params,
-                isPaid,
-            }
-        }, { skipNull: true, skipEmptyString: true })
-
-        router.push(url)
-    }
-
     const handlePerPageChange = (perPage: string) => {
         const params = Object.fromEntries(searchParams.entries());
         const url = queryString.stringifyUrl({
@@ -86,16 +78,20 @@ export const Header = () => {
         router.push(pathname)
         setSearch("")
         setPhone("")
-        setIsPaid("")
         setPerPage(undefined)
     }
 
     return (
-        <div className="space-y-2 shadow-sm shadow-primary px-2 py-3">
-            <FilterDrawer open={open} handleClose={handleClose} />
-            <Button className="md:hidden" onClick={() => setOpen(true)}>Filter</Button>
-            <div className="hidden md:flex items-center justify-between gap-x-3">
-                <div className="flex items-center gap-x-3">
+        <Sheet open={open} onOpenChange={handleClose}>
+            <SheetContent>
+                <SheetHeader className="space-y-0">
+                    <SheetTitle className="text-start">Filter</SheetTitle>
+                    <SheetDescription className="text-start">
+                        Filter search result
+                    </SheetDescription>
+                </SheetHeader>
+
+                <div className="space-y-3 mt-4">
                     <div>
                         <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -116,36 +112,27 @@ export const Header = () => {
                             value={phone}
                         />
                     </div>
-                    <Select value={isPaid} onValueChange={(value) => handleStatusChange(value)}>
-                        <SelectTrigger className="w-[130px]">
-                            <SelectValue placeholder="Status" />
+                    <Select value={perPage || ""} onValueChange={(value) => handlePerPageChange(value)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Limit" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="true">Paid</SelectItem>
-                            <SelectItem value="false">Unpaid</SelectItem>
+                            {
+                                ["5", "10", "20", "50", "100", "200"].map((v, i) => (
+                                    <SelectItem value={v} key={i}>{v}</SelectItem>
+                                ))
+                            }
                         </SelectContent>
                     </Select>
                     <Button
-                        variant="destructive"
-                        className=""
+                        className="bg-rose-500 text-white"
                         onClick={handleReset}
                     >
                         Reset
                     </Button>
                 </div>
-                <Select value={perPage || ""} onValueChange={(value) => handlePerPageChange(value)}>
-                    <SelectTrigger className="w-[130px]">
-                        <SelectValue placeholder="Limit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {
-                            ["5", "10", "20", "50", "100", "200"].map((v, i) => (
-                                <SelectItem value={v} key={i}>{v}</SelectItem>
-                            ))
-                        }
-                    </SelectContent>
-                </Select>
-            </div>
-        </div>
+            </SheetContent>
+        </Sheet>
+
     )
 }

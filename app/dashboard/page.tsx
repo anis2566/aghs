@@ -24,10 +24,11 @@ const Dashboard = async () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Calculate the start of the month
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
-  // Calculate the end of the month
   const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   monthEnd.setHours(23, 59, 59, 999); // Set to the end of the day
 
@@ -38,28 +39,53 @@ const Dashboard = async () => {
     },
   };
 
-  const apps = await db.application.groupBy({
-    by: ["createdAt"],
-    where: {
-      OR: [
-        {
-          ...monthFilter
-        },
-      ]
-    },
-    _count: {
-      _all: true
-    }
-  })
+  const [apps, recentApps, toadayApp, unverifiedApp, unpaidApp] = await Promise.all([
+    await db.application.groupBy({
+      by: ["createdAt"],
+      where: {
+        OR: [
+          {
+            ...monthFilter
+          },
+        ]
+      },
+      _count: {
+        _all: true
+      }
+    }),
+    await db.application.findMany({
+      where: {
+        isPaid: true,
+        isVerified: true
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 3
+    }),
+    await db.application.count({
+      where: {
+        createdAt: { gte: today, lt: tomorrow },
+      }
+    }),
+    await db.application.count({
+      where: {
+        isVerified: false
+      }
+    }),
+    await db.application.count({
+      where: {
+        isPaid: false
+      }
+    })
+  ])
 
-  // Initialize an array with all dates of the current month up to today
   const daysInMonth = today.getDate();
   const appsArray = Array.from({ length: daysInMonth }, (_, i) => {
     const date = new Date(today.getFullYear(), today.getMonth(), i + 1).toLocaleDateString('en-US');
     return { date, count: 0 };
   });
 
-  // Fill in the student counts
   apps.forEach(item => {
     const date = item.createdAt.toLocaleDateString('en-US');
     const day = appsArray.find(d => d.date === date);
@@ -68,16 +94,6 @@ const Dashboard = async () => {
     }
   });
 
-  const recentApps = await db.application.findMany({
-    where: {
-      isPaid: true,
-      isVerified: true
-    },
-    orderBy: {
-      createdAt: "desc"
-    },
-    take: 3
-  })
 
   return (
     <ContentLayout title="Dashboard">
@@ -92,9 +108,9 @@ const Dashboard = async () => {
       </Breadcrumb>
 
       <div className="grid md:grid-cols-3 gap-6">
-        <StatCard title="Today Application" amount={30} icon={Files} />
-        <StatCard title="Unverified Application" amount={30} icon={ShieldX} />
-        <StatCard title="Unpaid Application" amount={30} icon={HandCoins} />
+        <StatCard title="Today Application" amount={toadayApp} icon={Files} />
+        <StatCard title="Unverified Application" amount={unverifiedApp} icon={ShieldX} />
+        <StatCard title="Unpaid Application" amount={unpaidApp} icon={HandCoins} />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

@@ -5,6 +5,7 @@ import {
   UserCog,
   UsersRound,
   Files,
+  FileSpreadsheet,
 } from "lucide-react";
 
 type Submenu = {
@@ -42,7 +43,7 @@ export function getMenuList(pathname: string): Group[] {
       ],
     },
     {
-      groupLabel: "Application",
+      groupLabel: "",
       menus: [
         {
           href: "/dashboard/application",
@@ -54,7 +55,7 @@ export function getMenuList(pathname: string): Group[] {
       ],
     },
     {
-      groupLabel: "Users",
+      groupLabel: "",
       menus: [
         {
           href: "",
@@ -75,6 +76,18 @@ export function getMenuList(pathname: string): Group[] {
               icon: UsersRound,
             },
           ],
+        },
+      ],
+    },
+    {
+      groupLabel: "",
+      menus: [
+        {
+          href: "/dashboard/report",
+          label: "Report",
+          active: pathname.includes("/dashboard/report"),
+          icon: FileSpreadsheet,
+          submenus: [],
         },
       ],
     },
